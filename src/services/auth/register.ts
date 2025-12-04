@@ -3,11 +3,11 @@
 
 import { serverFetch } from "@/lib/server-fetch";
 import { zodValidator } from "@/lib/zodValidator";
-import { registerPatientValidationZodSchema } from "@/zod/auth.validation";
 import { loginUser } from "./loginUser";
+import { registerValidationZodSchema } from "@/src/zod/auth.validation";
 
 
-export const registerPatient = async (_currentState: any, formData: any): Promise<any> => {
+export const registerUser = async (_currentState: any, formData: any): Promise<any> => {
     try {
         const payload = {
             name: formData.get('name'),
@@ -17,14 +17,14 @@ export const registerPatient = async (_currentState: any, formData: any): Promis
             confirmPassword: formData.get('confirmPassword'),
         }
 
-        if (zodValidator(payload, registerPatientValidationZodSchema).success === false) {
-            return zodValidator(payload, registerPatientValidationZodSchema);
+        if (zodValidator(payload, registerValidationZodSchema).success === false) {
+            return zodValidator(payload, registerValidationZodSchema);
         }
 
-        const validatedPayload: any = zodValidator(payload, registerPatientValidationZodSchema).data;
+        const validatedPayload: any = zodValidator(payload, registerValidationZodSchema).data;
         const registerData = {
             password: validatedPayload.password,
-            patient: {
+            user: {
                 name: validatedPayload.name,
                 address: validatedPayload.address,
                 email: validatedPayload.email,
@@ -39,7 +39,7 @@ export const registerPatient = async (_currentState: any, formData: any): Promis
             newFormData.append("file", formData.get("file") as Blob);
         }
 
-        const res = await serverFetch.post("/user/create-patient", {
+        const res = await serverFetch.post("/user/create-user", {
             body: newFormData,
         })
 

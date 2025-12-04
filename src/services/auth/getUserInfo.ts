@@ -2,9 +2,9 @@
 "use server"
 
 import { serverFetch } from "@/lib/server-fetch";
-import { UserInfo } from "@/types/user.interface";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { getCookie } from "./tokenHandlers";
+import { UserInfo } from "@/src/types/user.interface";
 
 export const getUserInfo = async (): Promise<UserInfo | any> => {
     let userInfo: UserInfo | any;

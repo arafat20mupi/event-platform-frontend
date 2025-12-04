@@ -36,8 +36,8 @@ export const ROUTES = {
   USER_PROFILE: (id: string) => `/profile/${id}`,
   DASHBOARD: "/dashboard",
   HOST_DASHBOARD: "/dashboard/host",
-  ADMIN: "/admin",
-  ADMIN_USERS: "/admin/users",
-  ADMIN_EVENTS: "/admin/events",
-  ADMIN_HOSTS: "/admin/hosts",
+  ADMIN: "/admin/dashboard",
+  ADMIN_USERS: "/admin/dashboard/users",
+  ADMIN_EVENTS: "/admin/dashboard/events",
+  ADMIN_HOSTS: "/admin/dashboard/hosts",
 } as const

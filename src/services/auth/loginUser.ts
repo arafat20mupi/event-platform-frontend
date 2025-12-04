@@ -11,7 +11,6 @@ import { loginValidationZodSchema } from "@/src/zod/auth.validation";
 import { getDefaultDashboardRoute, isValidRedirectForRole, UserRole } from "@/lib/auth-utils";
 
 
-
 export const loginUser = async (_currentState: any, formData: any): Promise<any> => {
     try {
         const redirectTo = formData.get('redirect') || null;
