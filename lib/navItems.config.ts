@@ -29,7 +29,7 @@ export const getCommonNavItems = (role: UserRole): NavSection[] => {
                 {
                     title: "Change Password",
                     href: "/change-password",
-                    icon: "Settings", // ✅ String
+                    icon: "Settings", 
                     roles: ["USER"],
                 },
             ],
@@ -44,7 +44,7 @@ export const hostNavItems: NavSection[] = [
             {
                 title: "Create Events",
                 href: "/host/dashboard/create-events",
-                icon: "Calendar", // ✅ String
+                icon: "Calendar", 
                 badge: "3",
                 roles: ["HOST"],
             },
@@ -59,7 +59,7 @@ export const userNavItems: NavSection[] = [
             {
                 title: "My Events",
                 href: "/dashboard/my-events",
-                icon: "Calendar", // ✅ String
+                icon: "Calendar", 
                 roles: ["USER"],
             },
         ],
@@ -73,19 +73,19 @@ export const adminNavItems: NavSection[] = [
             {
                 title: "Admins",
                 href: "/admin/dashboard/admins-management",
-                icon: "Shield", // ✅ String
+                icon: "Shield", 
                 roles: ["ADMIN"],
             },
             {
                 title: "Hosts",
                 href: "/admin/dashboard/hosts-management",
-                icon: "Stethoscope", // ✅ String
+                icon: "Stethoscope", 
                 roles: ["ADMIN"],
             },
             {
                 title: "Users",
                 href: "/admin/dashboard/users-management",
-                icon: "Users", // ✅ String
+                icon: "Users", 
                 roles: ["ADMIN"],
             },
         ],
@@ -94,27 +94,15 @@ export const adminNavItems: NavSection[] = [
         title: "Events Management",
         items: [
             {
-                title: "Events",
-                href: "/admin/dashboard/events-management",
-                icon: "Calendar", // ✅ String
+                title: "All Events",
+                href: "/admin/dashboard/events",
+                icon: "Calendar", 
                 roles: ["ADMIN"],
             },
             {
-                title: "Schedules",
-                href: "/admin/dashboard/schedules-management",
-                icon: "Clock", // ✅ String
-                roles: ["ADMIN"],
-            },
-            {
-                title: "All Event Categories",
-                href: "/admin/dashboard/event-categories-management",
-                icon: "Hospital", // ✅ String
-                roles: ["ADMIN"],
-            },
-            {
-                title: "All Event",
-                href: "/admin/dashboard/event-management",
-                icon: "Hospital", // ✅ String
+                title: "Event Categories",
+                href: "/admin/dashboard/event-categories",
+                icon: "Hospital", 
                 roles: ["ADMIN"],
             },
         ],

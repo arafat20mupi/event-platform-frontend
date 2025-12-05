@@ -11,7 +11,7 @@ interface NavbarProps {
   userRole?: string
 }
 
-export function Navbar({ isAuthenticated = false, userRole = "user" }: NavbarProps) {
+export function Navbar({ isAuthenticated = false,}: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const renderNavLinks = () => {
@@ -25,19 +25,11 @@ export function Navbar({ isAuthenticated = false, userRole = "user" }: NavbarPro
       { href: ROUTES.PROFILE, label: "Profile" },
     ]
 
-    const hostLinks = [{ href: ROUTES.CREATE_EVENT, label: "Create Event" }]
-    const adminLinks = [{ href: ROUTES.ADMIN, label: "Admin" }]
 
     let links: { href: string; label: string }[] = [...baseLinks]
 
     if (isAuthenticated) {
       links = [...links, ...authenticatedLinks]
-      if (userRole === "host" || userRole === "admin") {
-        links = [...links, ...hostLinks]
-      }
-      if (userRole === "admin") {
-        links = [...links, ...adminLinks]
-      }
     }
 
     return links

@@ -1,3 +1,6 @@
+import { fetchEventCategories } from "@/src/services/events/eventsCetegory";
+import { EventCategory } from "@/src/types/event";
+
 export const EVENT_CATEGORIES = [
   { value: "sports", label: "Sports" },
   { value: "music", label: "Music" },
@@ -11,12 +14,13 @@ export const EVENT_CATEGORIES = [
   { value: "other", label: "Other" },
 ] as const
 
-export const EVENT_STATUSES = [
-  { value: "upcoming", label: "Upcoming" },
-  { value: "ongoing", label: "Ongoing" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-] as const
+export const EVENT_STATUSES = async () => {
+  const categories: EventCategory[] = await fetchEventCategories();
+  return categories.map((category) => ({
+    value: category.id,
+    label: category.name,
+  }));
+}
 
 export const USER_ROLES = [
   { value: "user", label: "User" },

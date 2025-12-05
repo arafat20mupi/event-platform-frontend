@@ -29,3 +29,8 @@ export interface EventFilters {
     maxPrice?: number
     sortBy?: "date" | "price" | "popularity"
 }
+
+export interface EventCategory {
+    id: string
+    name: string
+}
