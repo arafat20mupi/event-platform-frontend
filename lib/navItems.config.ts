@@ -45,9 +45,14 @@ export const hostNavItems: NavSection[] = [
                 title: "Create Events",
                 href: "/host/dashboard/create-events",
                 icon: "Calendar", 
-                badge: "3",
                 roles: ["HOST"],
             },
+            {
+                title: "My Hosted Events",
+                href: "/host/dashboard/my-hosted-events",
+                icon: "Event", 
+                roles: ["HOST"],
+            }
         ],
     }
 ]

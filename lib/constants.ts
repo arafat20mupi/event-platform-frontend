@@ -1,6 +1,3 @@
-import { fetchEventCategories } from "@/src/services/events/eventsCetegory";
-import { EventCategory } from "@/src/types/event";
-
 export const EVENT_CATEGORIES = [
   { value: "sports", label: "Sports" },
   { value: "music", label: "Music" },
@@ -14,19 +11,10 @@ export const EVENT_CATEGORIES = [
   { value: "other", label: "Other" },
 ] as const
 
-export const EVENT_STATUSES = async () => {
-  const categories: EventCategory[] = await fetchEventCategories();
-  return categories.map((category) => ({
-    value: category.id,
-    label: category.name,
-  }));
-}
+export const EVENT_STATUSES = ["OPEN", "CLOSED", "CANCELLED"] as const
 
-export const USER_ROLES = [
-  { value: "user", label: "User" },
-  { value: "host", label: "Host" },
-  { value: "admin", label: "Admin" },
-] as const
+export const EVENT_TYPES = ["ONLINE", "OFFLINE", "HYBRID"] as const
+
 
 export const ROUTES = {
   HOME: "/",
@@ -36,12 +24,12 @@ export const ROUTES = {
   EVENT_DETAIL: (id: string) => `/events/${id}`,
   CREATE_EVENT: "/events/create",
   EDIT_EVENT: (id: string) => `/events/edit/${id}`,
-  PROFILE: "/profile/me",
+  PROFILE: "/my-profile",
   USER_PROFILE: (id: string) => `/profile/${id}`,
-  DASHBOARD: "/dashboard",
+  USER_DASHBOARD: "/dashboard",
   HOST_DASHBOARD: "/dashboard/host",
-  ADMIN: "/admin/dashboard",
+  ADMIN_DASHBOARD: "/admin/dashboard",
   ADMIN_USERS: "/admin/dashboard/users",
   ADMIN_EVENTS: "/admin/dashboard/events",
   ADMIN_HOSTS: "/admin/dashboard/hosts",
-} as const
+} as const;

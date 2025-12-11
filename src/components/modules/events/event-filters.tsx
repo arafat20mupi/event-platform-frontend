@@ -8,8 +8,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/sr
 import { Slider } from "@/src/components/ui/slider"
 import { Badge } from "@/src/components/ui/badge"
 import { X, Filter, Search } from "lucide-react"
-import { EventFilters } from "@/src/types/event"
 import { EVENT_CATEGORIES, EVENT_STATUSES } from "@/lib/constants"
+import { EventFilters } from "@/src/types/event.interface"
 
 interface EventFiltersProps {
   onFiltersChange: (filters: EventFilters) => void

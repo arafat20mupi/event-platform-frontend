@@ -51,7 +51,7 @@ export default function AdminUsersPage() {
             subtitle="View and manage platform users"
             action={
               <Button variant="outline" asChild>
-                <Link href={ROUTES.ADMIN}>Back to Dashboard</Link>
+                <Link href={ROUTES.ADMIN_DASHBOARD}>Back to Dashboard</Link>
               </Button>
             }
           />

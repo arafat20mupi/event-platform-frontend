@@ -1,165 +1,254 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useState, useActionState } from "react"
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Textarea } from "@/src/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select"
 import { Alert, AlertDescription } from "@/src/components/ui/alert"
 import { Card } from "@/src/components/ui/card"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
-import { createEventSchema, type CreateEventFormData } from "@/lib/validation"
-import { EVENT_CATEGORIES } from "@/lib/constants"
-// import { eventService } from "/"
+import type { CreateEventFormData } from "@/src/zod/events.validation"
+import { createEvent } from "@/src/services/events/events"
+import {
+  EventCategory,
+  EventFormValues,
+  EventState,
+} from "@/src/types/event.interface"
+import { EVENT_STATUSES, EVENT_TYPES } from "@/lib/constants"
+import { initialEventState } from "@/src/services/events/eventState"
 
 interface CreateEventFormProps {
   onSuccess?: () => void
   initialData?: Partial<CreateEventFormData>
   isEditing?: boolean
+  categories: EventCategory[]
 }
 
-export function CreateEventForm({ onSuccess, initialData, isEditing = false }: CreateEventFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  
+export function CreateEventForm({
+  onSuccess,
+  initialData,
+  isEditing = false,
+  categories,
+}: CreateEventFormProps) {
+  const [startDate, setStartDate] = useState(initialData?.startDate ?? "")
+  const [endDate, setEndDate] = useState(initialData?.endDate ?? "")
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-    setValue,
-  } = useForm<CreateEventFormData>({
-    resolver: zodResolver(createEventSchema),
-    defaultValues: initialData,
-  })
+  const [state, formAction, isPending] = useActionState<EventState, FormData>(
+    createEvent,
+    initialEventState
+  )
 
-  const startDate = watch("startDate")
-  const endDate = watch("endDate")
+  const isLoading = isPending
 
-  const onSubmit = async (data: CreateEventFormData) => {
-    setIsLoading(true)
-    setError(null)
-    setSuccess(false)
-
-    try {
-      if (isEditing && initialData) {
-        // await eventService.updateEvent(initialData.id, data);
-      } else {
-        // await eventService.createEvent(data)
-      }
-
-      setSuccess(true)
-      setTimeout(() => {
+  useEffect(() => {
+    if (state.success) {
+      const timer = setTimeout(() => {
         onSuccess?.()
       }, 1500)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred while creating the event")
-    } finally {
-      setIsLoading(false)
+      return () => clearTimeout(timer)
     }
-  }
+  }, [state.success, onSuccess])
+
+  const fieldError = (name: keyof NonNullable<EventState["fieldErrors"]>) =>
+    state.fieldErrors?.[name]
+
+  const value = (name: keyof NonNullable<EventState["values"]>, fallback = "") =>
+    (state.values?.[name] as string | number | undefined) ??
+    ((initialData as EventFormValues)?.[name] ?? fallback)
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form action={formAction} className="space-y-8">
       {/* Error Alert */}
-      {error && (
+      {state.error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {typeof state.error === "string"
+              ? state.error
+              : "Something went wrong. Please try again."}
+          </AlertDescription>
         </Alert>
       )}
 
       {/* Success Alert */}
-      {success && (
+      {state.success && (
         <Alert className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
           <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
           <AlertDescription className="text-green-600 dark:text-green-400">
-            {isEditing ? "Event updated successfully!" : "Event created successfully!"}
+            {isEditing
+              ? "Event updated successfully!"
+              : "Event created successfully!"}
           </AlertDescription>
         </Alert>
       )}
 
       {/* Basic Information */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-6">Basic Information</h2>
+      <Card className="p-6 space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-xl font-bold">Basic Information</h2>
+          <span className="text-xs text-muted-foreground">
+            Fields marked * are required
+          </span>
+        </div>
 
-        <div className="space-y-4">
-          {/* Event Title */}
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
-              Event Title *
-            </label>
-            <Input
-              id="title"
-              placeholder="e.g., Annual Tech Conference 2025"
-              {...register("title")}
-              disabled={isLoading}
-              className={errors.title ? "border-destructive" : ""}
-            />
-            {errors.title && <p className="text-xs text-destructive mt-1">{errors.title.message}</p>}
-          </div>
+        {/* Event Title */}
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium mb-2">
+            Event Title *
+          </label>
+          <Input
+            id="title"
+            name="title"
+            placeholder="e.g., Annual Tech Conference 2025"
+            defaultValue={String(value("title"))}
+            disabled={isLoading}
+            className={fieldError("title") ? "border-destructive" : ""}
+          />
+          {fieldError("title") && (
+            <p className="text-xs text-destructive mt-1">
+              {fieldError("title")}
+            </p>
+          )}
+        </div>
 
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-2">
-              Description *
-            </label>
-            <Textarea
-              id="description"
-              placeholder="Describe your event in detail..."
-              rows={6}
-              {...register("description")}
-              disabled={isLoading}
-              className={errors.description ? "border-destructive" : ""}
-            />
-            {errors.description && <p className="text-xs text-destructive mt-1">{errors.description.message}</p>}
-          </div>
+        {/* Description */}
+        <div>
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium mb-2"
+          >
+            Description *
+          </label>
+          <Textarea
+            id="description"
+            name="description"
+            placeholder="Describe your event in detail..."
+            rows={6}
+            defaultValue={String(value("description"))}
+            disabled={isLoading}
+            className={fieldError("description") ? "border-destructive" : ""}
+          />
+          {fieldError("description") && (
+            <p className="text-xs text-destructive mt-1">
+              {fieldError("description")}
+            </p>
+          )}
+        </div>
 
-          {/* Category */}
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium mb-2">
-              Category *
-            </label>
-            <Select defaultValue={initialData?.category} onValueChange={(value) => setValue("category", value as any)}>
-              <SelectTrigger className={errors.category ? "border-destructive" : ""}>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {EVENT_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.category && <p className="text-xs text-destructive mt-1">{errors.category.message}</p>}
-          </div>
+        {/* Category */}
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium mb-2">
+            Category *
+          </label>
+          <Select
+            name="category"
+            defaultValue={String(value("category"))}
+            disabled={isLoading}
+          >
+            <SelectTrigger
+              className={fieldError("category") ? "border-destructive" : ""}
+            >
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories?.map((cat) => (
+                <SelectItem key={cat.id} value={cat.name}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldError("category") && (
+            <p className="text-xs text-destructive mt-1">
+              {fieldError("category")}
+            </p>
+          )}
+        </div>
+
+        {/* Event Type */}
+        <div>
+          <label htmlFor="type" className="block text-sm font-medium mb-2">
+            Event Type *
+          </label>
+          <Select
+            name="type"
+            defaultValue={String(value("type"))}
+            disabled={isLoading}
+          >
+            <SelectTrigger
+              className={fieldError("type") ? "border-destructive" : ""}
+            >
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              {EVENT_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t.charAt(0) + t.slice(1).toLowerCase()}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldError("type") && (
+            <p className="text-xs text-destructive mt-1">
+              {fieldError("type")}
+            </p>
+          )}
+        </div>
+
+        {/* Image */}
+        <div>
+          <label htmlFor="image" className="block text-sm font-medium mb-2">
+            Cover Image
+          </label>
+          <Input
+            id="image"
+            name="file"
+            type="file"
+            disabled={isLoading}
+            className={fieldError("file") ? "border-destructive" : ""}
+          />
+          {fieldError("file") && (
+            <p className="text-xs text-destructive mt-1">
+              {fieldError("file")}
+            </p>
+          )}
         </div>
       </Card>
 
       {/* Date & Time */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-6">Date & Time</h2>
+      <Card className="p-6 space-y-4">
+        <h2 className="text-xl font-bold mb-2">Date & Time</h2>
 
         <div className="grid md:grid-cols-2 gap-4 space-y-4 md:space-y-0">
           {/* Start Date */}
           <div>
-            <label htmlFor="startDate" className="block text-sm font-medium mb-2">
+            <label
+              htmlFor="startDate"
+              className="block text-sm font-medium mb-2"
+            >
               Start Date & Time *
             </label>
             <Input
               id="startDate"
+              name="startDate"
               type="datetime-local"
-              {...register("startDate")}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
               disabled={isLoading}
-              className={errors.startDate ? "border-destructive" : ""}
+              className={fieldError("startDate") ? "border-destructive" : ""}
             />
-            {errors.startDate && <p className="text-xs text-destructive mt-1">{errors.startDate.message}</p>}
+            {fieldError("startDate") && (
+              <p className="text-xs text-destructive mt-1">
+                {fieldError("startDate")}
+              </p>
+            )}
           </div>
 
           {/* End Date */}
@@ -169,78 +258,158 @@ export function CreateEventForm({ onSuccess, initialData, isEditing = false }: C
             </label>
             <Input
               id="endDate"
+              name="endDate"
               type="datetime-local"
-              {...register("endDate")}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
               disabled={isLoading}
-              className={errors.endDate ? "border-destructive" : ""}
+              className={fieldError("endDate") ? "border-destructive" : ""}
             />
-            {errors.endDate && <p className="text-xs text-destructive mt-1">{errors.endDate.message}</p>}
+            {fieldError("endDate") && (
+              <p className="text-xs text-destructive mt-1">
+                {fieldError("endDate")}
+              </p>
+            )}
           </div>
         </div>
 
         {startDate && endDate && new Date(endDate) <= new Date(startDate) && (
           <Alert variant="destructive" className="mt-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>End date must be after start date</AlertDescription>
+            <AlertDescription>
+              End date must be after start date
+            </AlertDescription>
           </Alert>
         )}
       </Card>
 
       {/* Location & Capacity */}
-      <Card className="p-6">
+      <Card className="p-6 space-y-4">
         <h2 className="text-xl font-bold mb-6">Location & Capacity</h2>
 
-        <div className="space-y-4">
-          {/* Location */}
+        {/* Location */}
+        <div>
+          <label htmlFor="location" className="block text-sm font-medium mb-2">
+            Location *
+          </label>
+          <Input
+            id="location"
+            name="location"
+            placeholder="e.g., San Francisco Convention Center, CA"
+            defaultValue={String(value("location"))}
+            disabled={isLoading}
+            className={fieldError("location") ? "border-destructive" : ""}
+          />
+          {fieldError("location") && (
+            <p className="text-xs text-destructive mt-1">
+              {fieldError("location")}
+            </p>
+          )}
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Capacity */}
           <div>
-            <label htmlFor="location" className="block text-sm font-medium mb-2">
-              Location *
+            <label htmlFor="capacity" className="block text-sm font-medium mb-2">
+              Capacity *
             </label>
             <Input
-              id="location"
-              placeholder="e.g., San Francisco Convention Center, CA"
-              {...register("location")}
+              id="capacity"
+              name="capacity"
+              type="number"
+              min="1"
+              placeholder="Number of attendees"
+              defaultValue={value("capacity", "")}
               disabled={isLoading}
-              className={errors.location ? "border-destructive" : ""}
+              className={fieldError("capacity") ? "border-destructive" : ""}
             />
-            {errors.location && <p className="text-xs text-destructive mt-1">{errors.location.message}</p>}
+            {fieldError("capacity") && (
+              <p className="text-xs text-destructive mt-1">
+                {fieldError("capacity")}
+              </p>
+            )}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* Capacity */}
-            <div>
-              <label htmlFor="capacity" className="block text-sm font-medium mb-2">
-                Capacity *
-              </label>
-              <Input
-                id="capacity"
-                type="number"
-                min="1"
-                placeholder="Number of attendees"
-                {...register("capacity", { valueAsNumber: true })}
-                disabled={isLoading}
-                className={errors.capacity ? "border-destructive" : ""}
-              />
-              {errors.capacity && <p className="text-xs text-destructive mt-1">{errors.capacity.message}</p>}
-            </div>
+          {/* Minimum Participants */}
+          <div>
+            <label
+              htmlFor="minParticipants"
+              className="block text-sm font-medium mb-2"
+            >
+              Minimum Participants
+            </label>
+            <Input
+              id="minParticipants"
+              name="minParticipants"
+              type="number"
+              min="1"
+              placeholder="e.g., 5"
+              defaultValue={value("minParticipants", "")}
+              disabled={isLoading}
+              className={
+                fieldError("minParticipants") ? "border-destructive" : ""
+              }
+            />
+            {fieldError("minParticipants") && (
+              <p className="text-xs text-destructive mt-1">
+                {fieldError("minParticipants")}
+              </p>
+            )}
+          </div>
+        </div>
 
-            {/* Price */}
-            <div>
-              <label htmlFor="price" className="block text-sm font-medium mb-2">
-                Price (USD) *
-              </label>
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                {...register("price", { valueAsNumber: true })}
-                disabled={isLoading}
-                className={errors.price ? "border-destructive" : ""}
-              />
-              {errors.price && <p className="text-xs text-destructive mt-1">{errors.price.message}</p>}
-            </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Price */}
+          <div>
+            <label htmlFor="price" className="block text-sm font-medium mb-2">
+              Price (USD) *
+            </label>
+            <Input
+              id="price"
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              defaultValue={value("price", "")}
+              disabled={isLoading}
+              className={fieldError("price") ? "border-destructive" : ""}
+            />
+            {fieldError("price") && (
+              <p className="text-xs text-destructive mt-1">
+                {fieldError("price")}
+              </p>
+            )}
+          </div>
+
+          {/* Status */}
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium mb-2">
+              Status
+            </label>
+            <Select
+              name="status"
+              defaultValue={String(value("status", "OPEN"))}
+              disabled={isLoading}
+            >
+              <SelectTrigger
+                className={fieldError("status") ? "border-destructive" : ""}
+              >
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s.charAt(0) + s.slice(1).toLowerCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldError("status") && (
+              <p className="text-xs text-destructive mt-1">
+                {fieldError("status")}
+              </p>
+            )}
           </div>
         </div>
       </Card>
@@ -250,7 +419,13 @@ export function CreateEventForm({ onSuccess, initialData, isEditing = false }: C
         <Button type="submit" size="lg" disabled={isLoading} className="flex-1">
           {isLoading ? "Creating..." : isEditing ? "Update Event" : "Create Event"}
         </Button>
-        <Button type="button" variant="outline" size="lg" disabled={isLoading} onClick={() => window.history.back()}>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          disabled={isLoading}
+          onClick={() => window.history.back()}
+        >
           Cancel
         </Button>
       </div>
